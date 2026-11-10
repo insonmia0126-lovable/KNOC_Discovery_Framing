@@ -1,0 +1,10 @@
+{
+  "orgName": "가상 기관",
+  "workTypes": ["석유 시황 인수인계"],
+  "models": {
+    "generation": { "baseUrl": "https://api.openai.com/v1", "name": "", "timeoutMs": 60000 },
+    "embedding": null
+  },
+  "pipeline": { "concurrency": 1, "batchSize": 2, "timeoutMs": 60000, "maxAttempts": 3 },
+  "note": "키는 이 파일에 넣지 않습니다. LLM_API_KEY 환경변수만 사용합니다."
+}

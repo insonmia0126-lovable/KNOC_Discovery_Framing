@@ -1,0 +1,15 @@
+{
+  "note": "정답 근거는 합성 자료 corpus.json의 문서 id입니다. 페트로넷 원문이 아닙니다.",
+  "questions": [
+    {"id": "q1", "kind": "유사 사례", "query": "우회 항로 수송 차질", "expectDocs": ["syn-transport-initial", "syn-transport-follow", "syn-transport-after"], "forbidTop": "syn-demand-drop"},
+    {"id": "q2", "kind": "당시 보고서", "query": "가상 수송로 차질 초기 분석", "expectDocs": ["syn-transport-initial"]},
+    {"id": "q3", "kind": "전망", "query": "2주 안에 완화 전망", "expectDocs": ["syn-transport-initial"]},
+    {"id": "q4", "kind": "결과", "query": "3주 뒤 운임 사후 점검", "expectDocs": ["syn-transport-after"]},
+    {"id": "q5", "kind": "차이", "query": "수요 위축 가격 하락", "expectDocs": ["syn-demand-drop"]},
+    {"id": "q6", "kind": "미완료", "query": "산유국 협의체 회신 확인", "expectDocs": ["syn-predecessor-memo", "syn-schedule"]},
+    {"id": "q7", "kind": "충돌·단위", "query": "18달러/톤 운임", "expectDocs": ["syn-transport-follow"]},
+    {"id": "q8", "kind": "전망과 결과", "query": "12달러/톤으로 되돌아", "expectDocs": ["syn-transport-after"]},
+    {"id": "q9", "kind": "권한", "query": "비밀 수치 999만 배럴", "expectDocs": ["syn-restricted"], "restricted": true},
+    {"id": "q10", "kind": "근거 부재", "query": "공식 위기 단계 결재선 지정 번호", "expectDocs": []}
+  ]
+}

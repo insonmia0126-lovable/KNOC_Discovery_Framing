@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #0b1f44;
+  --teal: #0f766e;
+  --paper: #f4f7fb;
+  --ink: #142033;
+}
+
+html { font-size: 17px; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
+}
+a { color: inherit; }
+button, input, textarea, select { font: inherit; }
+.skip {
+  position: absolute; left: -999px;
+}
+.skip:focus { left: 8px; top: 8px; background: white; padding: 8px; z-index: 9; }
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+}

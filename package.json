@@ -1,0 +1,38 @@
+{
+  "name": "knoc-discovery-framing",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3847 -H 0.0.0.0",
+    "build": "next build",
+    "start": "next start -p 3847 -H 0.0.0.0",
+    "lint": "eslint",
+    "test": "tsx --test tests/*.test.ts",
+    "generate-samples": "node scripts/generate-samples.mjs",
+    "check": "npm test && npm run lint"
+  },
+  "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
+    "better-sqlite3": "^13.0.3",
+    "next": "15.5.15",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.5.438",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.15",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}
