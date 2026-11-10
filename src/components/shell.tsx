@@ -23,7 +23,7 @@ export function actor() {
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("x-demo-role", role());
-  headers.set("x-demo-actor", actor());
+  headers.set("x-demo-actor", encodeURIComponent(actor()));
   if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }

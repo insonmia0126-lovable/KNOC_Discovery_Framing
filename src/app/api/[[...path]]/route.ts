@@ -34,7 +34,13 @@ function roleOf(request: Request): Role {
 }
 
 function actorOf(request: Request) {
-  return request.headers.get("x-demo-actor") || roleOf(request);
+  const raw = request.headers.get("x-demo-actor");
+  if (!raw) return roleOf(request);
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
 }
 
 function fail(error: unknown) {

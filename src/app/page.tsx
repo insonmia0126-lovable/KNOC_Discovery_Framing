@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Shell, Status, api } from "@/components/shell";
@@ -31,7 +32,12 @@ export default function HomePage() {
   const [rows, setRows] = useState<Handover[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState("");
+  const [origin, setOrigin] = useState("");
+  const [qr, setQr] = useState("");
   useEffect(() => {
+    const here = window.location.origin;
+    setOrigin(here);
+    import("qrcode").then((QR) => QR.toDataURL(here, { margin: 1, width: 220 })).then(setQr);
     Promise.all([api<Handover[]>("/api/handovers"), api<Stats>("/api/stats")])
       .then(([h, s]) => {
         setRows(h);
@@ -45,6 +51,14 @@ export default function HomePage() {
       <p className="mt-2 max-w-3xl text-slate-700">
         과거의 분석을 오늘의 판단으로, 오늘의 판단을 다음 담당자의 실행으로 넘깁니다. 검색만으로 끝내지 않고 전임자 확정과 후임자 인수까지 남깁니다.
       </p>
+      <section className="mt-4 flex flex-wrap items-center gap-4 rounded-lg border border-slate-200 bg-white p-4">
+        {qr ? <Image src={qr} alt="이 사이트로 연결되는 QR 코드" width={140} height={140} unoptimized /> : <div className="h-[140px] w-[140px] bg-slate-100" />}
+        <div>
+          <p className="text-sm text-slate-500">지금 화면으로 바로 연결</p>
+          {origin ? <a className="text-lg font-semibold text-[#0f766e] underline" href={origin}>{origin}</a> : <p>주소를 확인하는 중입니다.</p>}
+          <p className="mt-1 max-w-md text-sm text-slate-600">휴대폰 카메라로 QR을 비추면 이 주소가 열립니다. 샘플은 가상 시나리오입니다.</p>
+        </div>
+      </section>
       {error && <p className="mt-4 rounded bg-red-50 p-3 text-red-800">{error}</p>}
       <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {stats && [
