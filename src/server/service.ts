@@ -474,12 +474,6 @@ export async function frame(db: AppDb, handoverId: string, mode: "as_of" | "hind
   const knownIds = new Set(
     (db.prepare("SELECT id FROM evidences WHERE handover_id = ?").all(handoverId) as { id: string }[]).map((e) => e.id),
   );
-  const settings = db.prepare("SELECT * FROM settings WHERE id = 1").get() as {
-    mode: string;
-    model_base_url: string;
-    model_name: string;
-    timeout_ms: number;
-  };
   const started = Date.now();
   let items: ItemDraft[] = [];
   let withheld: string | null = null;
@@ -489,14 +483,15 @@ export async function frame(db: AppDb, handoverId: string, mode: "as_of" | "hind
   let error: string | null = null;
   let output = "ok";
 
-  if (settings.mode === "live") {
-    const config = liveConfigFromEnv(settings);
+  const live = liveConfigFromEnv();
+  if (!("demo" in live)) {
+    const config = live;
     provider = "openai-compatible";
     isDemo = 0;
     if ("error" in config) {
       error = config.error;
       output = "error";
-      model = settings.model_name || "unset";
+      model = "unset";
     } else {
       try {
         const allowedDocs = new Set(
@@ -860,29 +855,26 @@ export function exportHandover(db: AppDb, handoverId: string, format: "json" | "
   return lines.join("\n");
 }
 
-export function updateSettings(
-  db: AppDb,
-  patch: Partial<{ orgName: string; workTypes: string; mode: "demo" | "live"; modelBaseUrl: string; modelName: string; embedModel: string; timeoutMs: number }>,
-) {
-  const current = db.prepare("SELECT * FROM settings WHERE id = 1").get() as Record<string, string | number>;
-  db.prepare(
-    `UPDATE settings SET org_name=?, work_types=?, mode=?, model_base_url=?, model_name=?, embed_model=?, timeout_ms=? WHERE id=1`,
-  ).run(
-    patch.orgName ?? current.org_name,
-    patch.workTypes ?? current.work_types,
-    patch.mode ?? current.mode,
-    patch.modelBaseUrl ?? current.model_base_url,
-    patch.modelName ?? current.model_name,
-    patch.embedModel ?? current.embed_model,
-    patch.timeoutMs ?? current.timeout_ms,
-  );
+export function updateSettings(db: AppDb, patch: Partial<{ orgName: string; workTypes: string }>) {
+  const current = db.prepare("SELECT org_name, work_types FROM settings WHERE id = 1").get() as {
+    org_name: string;
+    work_types: string;
+  };
+  const orgName = (patch.orgName ?? current.org_name).slice(0, 80);
+  const workTypes = (patch.workTypes ?? current.work_types).slice(0, 120);
+  db.prepare("UPDATE settings SET org_name=?, work_types=? WHERE id=1").run(orgName, workTypes);
 }
 
 export function publicSettings(db: AppDb) {
-  const row = db.prepare("SELECT org_name, work_types, mode, model_base_url, model_name, embed_model, timeout_ms FROM settings WHERE id = 1").get() as Record<string, string | number>;
+  const row = db.prepare("SELECT org_name, work_types FROM settings WHERE id = 1").get() as {
+    org_name: string;
+    work_types: string;
+  };
   return {
     ...row,
+    mode: process.env.LLM_MODE === "live" ? "live" : "demo",
     llmKeyConfigured: Boolean(process.env.LLM_API_KEY),
+    modelEndpointFixed: true,
     embedConfigured: false,
     supportedFormats: ["pdf", "txt", "xlsx"],
     unsupported: ["hwp", "hwpx", "ocr", "docx", "실시간 시황"],

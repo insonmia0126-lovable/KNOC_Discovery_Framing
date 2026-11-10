@@ -32,23 +32,26 @@ export type LiveConfig = {
   timeoutMs: number;
 };
 
-export function liveConfigFromEnv(settings: {
-  model_base_url: string;
-  model_name: string;
-  timeout_ms: number;
-}): LiveConfig | { error: string } {
+export function liveConfigFromEnv(): LiveConfig | { error: string } | { demo: true } {
+  if (process.env.LLM_MODE !== "live") return { demo: true };
   const apiKey = process.env.LLM_API_KEY || "";
-  if (!apiKey) {
-    return { error: "LLM_API_KEY가 없습니다. 데모 답변으로 바꾸지 않습니다." };
+  const baseUrl = (process.env.LLM_BASE_URL || "").trim().replace(/\/$/, "");
+  const model = (process.env.LLM_MODEL || "").trim();
+  if (!apiKey) return { error: "LLM_API_KEY가 없습니다. 데모 답변으로 바꾸지 않습니다." };
+  if (!baseUrl || !model) return { error: "LLM_BASE_URL 또는 LLM_MODEL이 없습니다. 데모 답변으로 바꾸지 않습니다." };
+  let parsed: URL;
+  try {
+    parsed = new URL(baseUrl);
+  } catch {
+    return { error: "LLM_BASE_URL이 올바른 주소가 아닙니다." };
   }
-  if (!settings.model_name) {
-    return { error: "설정에 모델 이름이 없습니다." };
-  }
+  if (parsed.protocol !== "https:") return { error: "LLM_BASE_URL은 https만 허용합니다." };
+  const timeout = Number(process.env.LLM_TIMEOUT_MS || 60000);
   return {
-    baseUrl: (process.env.LLM_BASE_URL || settings.model_base_url).replace(/\/$/, ""),
-    model: process.env.LLM_MODEL || settings.model_name,
+    baseUrl,
+    model,
     apiKey,
-    timeoutMs: settings.timeout_ms || 60000,
+    timeoutMs: Number.isFinite(timeout) ? Math.min(Math.max(timeout, 1000), 120000) : 60000,
   };
 }
 

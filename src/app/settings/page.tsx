@@ -7,11 +7,8 @@ type Settings = {
   org_name: string;
   work_types: string;
   mode: "demo" | "live";
-  model_base_url: string;
-  model_name: string;
-  embed_model: string | null;
-  timeout_ms: number;
   llmKeyConfigured: boolean;
+  modelEndpointFixed: boolean;
   supportedFormats: string[];
   unsupported: string[];
   twoModelCheck: string;
@@ -36,15 +33,7 @@ export default function SettingsPage() {
           try {
             const saved = await api<Settings>("/api/settings", {
               method: "PATCH",
-              body: JSON.stringify({
-                orgName: row.org_name,
-                workTypes: row.work_types,
-                mode: row.mode,
-                modelBaseUrl: row.model_base_url,
-                modelName: row.model_name,
-                embedModel: row.embed_model || "",
-                timeoutMs: Number(row.timeout_ms),
-              }),
+              body: JSON.stringify({ orgName: row.org_name, workTypes: row.work_types }),
             });
             setRow(saved);
             setMessage("저장했습니다. 키 값은 화면에 보이지 않습니다.");
@@ -55,15 +44,8 @@ export default function SettingsPage() {
       >
         <label>기관명<input className="mt-1 w-full rounded border p-2" value={row.org_name} onChange={(e) => setRow({ ...row, org_name: e.target.value })} /></label>
         <label>업무 분류<input className="mt-1 w-full rounded border p-2" value={row.work_types} onChange={(e) => setRow({ ...row, work_types: e.target.value })} /></label>
-        <label>모델 연결
-          <select className="mt-1 w-full rounded border p-2" value={row.mode} onChange={(e) => setRow({ ...row, mode: e.target.value as "demo" | "live" })}>
-            <option value="demo">합성자료 데모 / 실제 AI 호출 없음</option>
-            <option value="live">실제 모델</option>
-          </select>
-        </label>
-        <label>모델 주소<input className="mt-1 w-full rounded border p-2" value={row.model_base_url} onChange={(e) => setRow({ ...row, model_base_url: e.target.value })} /></label>
-        <label>모델 이름<input className="mt-1 w-full rounded border p-2" value={row.model_name} onChange={(e) => setRow({ ...row, model_name: e.target.value })} /></label>
-        <label>제한 시간(ms)<input className="mt-1 w-full rounded border p-2" type="number" value={row.timeout_ms} onChange={(e) => setRow({ ...row, timeout_ms: Number(e.target.value) })} /></label>
+        <p className="text-sm">모델 연결: {row.mode === "live" ? "서버에서 실제 모델" : "합성자료 데모 / 실제 AI 호출 없음"}</p>
+        <p className="text-sm">모델 주소는 화면에서 바꿀 수 없습니다. 서버 환경변수만 사용합니다.</p>
         <p className="text-sm">키 설정 여부: {row.llmKeyConfigured ? "환경변수에 있음" : "없음"}</p>
         <p className="text-sm">임베딩 색인: 연결 안 됨. 키워드 색인만 사용합니다.</p>
         <p className="text-sm">지원 형식: {row.supportedFormats.join(", ")}</p>
