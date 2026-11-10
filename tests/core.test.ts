@@ -7,7 +7,7 @@ import { rankDocuments, eligibleByTime } from "../src/server/search";
 import { buildFraming, citationText } from "../src/server/framing";
 import { openDb } from "../src/server/db";
 import { acceptHandover, confirmHandover, createHandover, frame, libraryStats, seedSamples, updateItem } from "../src/server/service";
-import { sha256 } from "../src/server/extract";
+import { readMeta, sha256 } from "../src/server/extract";
 
 const corpus = JSON.parse(fs.readFileSync(path.join(process.cwd(), "sample-data/corpus.json"), "utf8"));
 const evalSet = JSON.parse(fs.readFileSync(path.join(process.cwd(), "sample-data/eval-questions.json"), "utf8"));
@@ -54,6 +54,13 @@ test("검색 Recall@5와 제한 문서 제외", () => {
     if (q.forbidTop) assert.notEqual(ids[0], q.forbidTop);
   }
   assert.ok(hits / graded >= 0.8, `recall ${hits}/${graded}`);
+});
+
+test("제목은 같은 줄만 읽고 제한 문서 본문을 제목으로 삼지 않음", () => {
+  const meta = readMeta("제목: 가상 열람제한 예시\n발행일: 2024-03-12\n작성 부서: 가상 자료관리\n비밀 수치 999만 배럴은 검색과 내보내기에서 제외되어야 합니다.");
+  assert.equal(meta.title, "가상 열람제한 예시");
+  assert.equal(meta.publishedOn, "2024-03-12");
+  assert.equal(String(meta.title).includes("999"), false);
 });
 
 test("당시 판단 모드는 이후 문서를 제외", () => {

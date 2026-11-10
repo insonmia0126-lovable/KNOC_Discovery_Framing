@@ -37,13 +37,14 @@ export function readMeta(text: string): {
   docType: string | null;
 } {
   const pick = (label: string) => {
-    const m = text.match(new RegExp(`${label}\\s*:\\s*(.+)`));
-    return m ? m[1].trim() : null;
+    const m = text.match(new RegExp(`${label}\\s*:\\s*([^\\n]+)`));
+    if (!m) return null;
+    return m[1].trim().slice(0, 80);
   };
-  const published = pick("발행일");
+  const published = pick("발행일")?.match(/\d{4}-\d{2}-\d{2}/)?.[0] ?? null;
   return {
     title: pick("제목"),
-    publishedOn: published && /^\d{4}-\d{2}-\d{2}$/.test(published) ? published : null,
+    publishedOn: published,
     department: pick("작성 부서"),
     docType: pick("문서 유형"),
   };
@@ -61,12 +62,17 @@ export async function extractPdf(buffer: Buffer): Promise<{ pages: PageText[]; n
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
-      const raw = content.items
-        .map((item) => ("str" in item ? item.str : ""))
-        .join(" ")
-        .replace(/[ \t]+\n/g, "\n")
-        .replace(/[ ]{2,}/g, " ")
-        .trim();
+      const parts: string[] = [];
+      let lastY: number | null = null;
+      for (const item of content.items) {
+        if (!("str" in item) || !item.str) continue;
+        const y = "transform" in item ? Number(item.transform[5]) : null;
+        if (lastY !== null && y !== null && Math.abs(y - lastY) > 2) parts.push("\n");
+        else if (parts.length > 0 && parts[parts.length - 1] !== "\n") parts.push(" ");
+        parts.push(item.str);
+        if (y !== null) lastY = y;
+      }
+      const raw = parts.join("").replace(/[ \t]+\n/g, "\n").replace(/[ ]{2,}/g, " ").trim();
       const { text, ignored } = citationText(raw);
       pages.push({
         physicalPage: i,

@@ -45,17 +45,25 @@ export function libraryStats(db: AppDb) {
   };
 }
 
+function publicDocument<T extends Record<string, unknown>>(row: T) {
+  const copy = { ...row };
+  delete copy.stored_path;
+  if (copy.rights_status === "restricted") copy.title = copy.original_name;
+  return copy;
+}
+
 export function listDocuments(db: AppDb) {
-  return db.prepare("SELECT * FROM documents ORDER BY created_at DESC").all();
+  const rows = db.prepare("SELECT * FROM documents ORDER BY created_at DESC").all() as Record<string, unknown>[];
+  return rows.map(publicDocument);
 }
 
 export function getDocument(db: AppDb, documentId: string) {
-  const doc = db.prepare("SELECT * FROM documents WHERE id = ?").get(documentId);
+  const doc = db.prepare("SELECT * FROM documents WHERE id = ?").get(documentId) as Record<string, unknown> | undefined;
   if (!doc) return null;
   const chunks = db
-    .prepare("SELECT * FROM chunks WHERE document_id = ? ORDER BY physical_page")
+    .prepare("SELECT id, document_id, physical_page, printed_page, section_id, text, method, quality FROM chunks WHERE document_id = ? ORDER BY physical_page")
     .all(documentId);
-  return { document: doc, chunks };
+  return { document: publicDocument(doc), chunks };
 }
 
 function insertPages(db: AppDb, documentId: string, pages: PageText[], method: string) {
